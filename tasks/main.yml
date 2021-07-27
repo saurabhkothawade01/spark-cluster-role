@@ -1,0 +1,45 @@
+---
+# tasks file for spark-cluster-role
+- name: "Download & Install wget Command"
+  command: "yum install wget -y"
+
+- name: "Installing Java"
+  package:
+          name: java
+          state: present
+          update_cache: yes
+
+- name: "Installing Scala"
+  command: "{{  item.command }}"
+  loop:
+          - { command: "wget http://downloads.lightbend.com/scala/2.11.8/scala-2.11.8.rpm" }
+          - { command: "yum install scala-2.11.8.rpm -y" }       
+                    
+- name: "Downloading Spark"
+  get_url:
+          url: https://downloads.apache.org/spark/spark-3.1.2/spark-3.1.2-bin-hadoop3.2.tgz
+          dest: /root/spark-3.1.2-bin-hadoop3.2.tgz
+
+- name: "Extracting spark.tgz"
+  unarchive:
+          src: /root/spark-3.1.2-bin-hadoop3.2.tgz
+          dest: /root
+          remote_src: yes
+
+- name: Adding Spark to PATH environmental variable
+  shell: "export PATH=/root/spark-3.1.2-bin-hadoop3.2/bin/:/root/spark-3.1.2-bin-hadoop3.2/sbin/:$PATH"
+
+- name: Adding SPARK_HOME as environmental variable
+  shell: "export SPARK_HOME=/root/spark-3.1.2-bin-hadoop3.2/"
+
+- name: "Adding environmental variable in /root/.bashrc file"
+  lineinfile:
+          path: /root/.bashrc
+          insertafter: "EOF"
+          line: "{{ item.line }}"
+  loop:
+          - { line: "export PATH=/root/spark-3.1.2-bin-hadoop3.2/bin/:/root/spark-3.1.2-bin-hadoop3.2/sbin/:$PATH" }
+          - { line: "export SPARK_HOME=/root/spark-3.1.2-bin-hadoop3.2/" }
+             
+- debug:
+        msg: "SPARK CLUSTER CONFIGURED SUCCESSFULLY..."
